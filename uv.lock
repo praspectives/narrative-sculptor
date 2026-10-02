@@ -296,6 +296,7 @@ source = { editable = "." }
 dependencies = [
     { name = "click" },
     { name = "ollama" },
+    { name = "openai" },
     { name = "pydantic" },
     { name = "python-dotenv" },
 ]
@@ -317,6 +318,7 @@ requires-dist = [
     { name = "anthropic", marker = "extra == 'dev-api'", specifier = ">=0.30.0" },
     { name = "click", specifier = ">=8.1.0" },
     { name = "ollama", specifier = ">=0.3.0" },
+    { name = "openai", specifier = ">=3.23.0" },
     { name = "openai", marker = "extra == 'dev-api'", specifier = ">=1.40.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "python-dotenv", specifier = ">=1.0.0" },

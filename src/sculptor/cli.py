@@ -8,7 +8,7 @@ from sculptor.macos_bridge import get_clipboard, set_clipboard, notify_success, 
 @click.option("--model", default="llama3.2:1b", show_default=True, help="Ollama model (local default).")
 @click.option(
     "--dev-api",
-    type=click.Choice(["anthropic", "groq", "openai"]),
+    type=click.Choice(["anthropic", "groq", "openai", "grok"]),
     default=None,
     envvar="DEV_API",
     help="Cloud provider for dev/testing. Overrides local Ollama.",

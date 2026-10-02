@@ -85,10 +85,7 @@ def _generate_groq(raw_text: str, system_prompt: str, model: str) -> RetroRespon
 
 
 def _generate_openai(raw_text: str, system_prompt: str, model: str) -> RetroResponse:
-    try:
-        from openai import OpenAI
-    except ImportError:
-        raise RuntimeError("OpenAI SDK not installed. Run: uv pip install 'storytellers-forge[dev-api]'")
+    from openai import OpenAI
 
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
@@ -107,6 +104,25 @@ def _generate_openai(raw_text: str, system_prompt: str, model: str) -> RetroResp
     return RetroResponse.model_validate_json(response.choices[0].message.content)
 
 
+def _generate_grok(raw_text: str, system_prompt: str, model: str) -> RetroResponse:
+    from openai import OpenAI
+
+    api_key = os.getenv("GROK_API_KEY")
+    if not api_key:
+        raise RuntimeError("GROK_API_KEY not set in environment or .env file")
+
+    client = OpenAI(base_url="https://api.x.ai/v1", api_key=api_key)
+    response = client.beta.chat.completions.parse(
+        model=model or "grok-2-latest",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": raw_text},
+        ],
+        response_format=RetroResponse,
+    )
+    return response.choices[0].message.parsed
+
+
 def generate(
     raw_text: str,
     model: str,
@@ -121,4 +137,6 @@ def generate(
         return _generate_groq(raw_text, system_prompt, dev_model or "")
     if provider == "openai":
         return _generate_openai(raw_text, system_prompt, dev_model or "")
+    if provider == "grok":
+        return _generate_grok(raw_text, system_prompt, dev_model or "")
     return _generate_ollama(raw_text, model, system_prompt)
