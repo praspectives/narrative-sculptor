@@ -1,9 +1,9 @@
 import pytest
-from forge.macos_bridge import get_clipboard, set_clipboard, notify, notify_error, notify_success
+from sculptor.macos_bridge import get_clipboard, set_clipboard, notify, notify_error, notify_success
 
 
 def test_get_clipboard_calls_pbpaste(mocker):
-    mock_run = mocker.patch("forge.macos_bridge.subprocess.run")
+    mock_run = mocker.patch("sculptor.macos_bridge.subprocess.run")
     mock_run.return_value.returncode = 0
     mock_run.return_value.stdout = "hello world"
     result = get_clipboard()
@@ -12,7 +12,7 @@ def test_get_clipboard_calls_pbpaste(mocker):
 
 
 def test_get_clipboard_raises_on_failure(mocker):
-    mock_run = mocker.patch("forge.macos_bridge.subprocess.run")
+    mock_run = mocker.patch("sculptor.macos_bridge.subprocess.run")
     mock_run.return_value.returncode = 1
     mock_run.return_value.stderr = "error"
     with pytest.raises(RuntimeError, match="pbpaste failed"):
@@ -20,14 +20,14 @@ def test_get_clipboard_raises_on_failure(mocker):
 
 
 def test_set_clipboard_calls_pbcopy(mocker):
-    mock_run = mocker.patch("forge.macos_bridge.subprocess.run")
+    mock_run = mocker.patch("sculptor.macos_bridge.subprocess.run")
     mock_run.return_value.returncode = 0
     set_clipboard("test output")
     mock_run.assert_called_once_with(["pbcopy"], input="test output", capture_output=True, text=True)
 
 
 def test_set_clipboard_raises_on_failure(mocker):
-    mock_run = mocker.patch("forge.macos_bridge.subprocess.run")
+    mock_run = mocker.patch("sculptor.macos_bridge.subprocess.run")
     mock_run.return_value.returncode = 1
     mock_run.return_value.stderr = "error"
     with pytest.raises(RuntimeError, match="pbcopy failed"):
@@ -35,7 +35,7 @@ def test_set_clipboard_raises_on_failure(mocker):
 
 
 def test_notify_constructs_osascript(mocker):
-    mock_run = mocker.patch("forge.macos_bridge.subprocess.run")
+    mock_run = mocker.patch("sculptor.macos_bridge.subprocess.run")
     notify("Title", "Message", subtitle="Sub")
     call_args = mock_run.call_args[0][0]
     assert call_args[0] == "osascript"
@@ -45,13 +45,27 @@ def test_notify_constructs_osascript(mocker):
 
 
 def test_notify_error_does_not_raise_on_osascript_failure(mocker):
-    mock_run = mocker.patch("forge.macos_bridge.subprocess.run")
+    mock_run = mocker.patch("sculptor.macos_bridge.subprocess.run")
     mock_run.return_value.returncode = 1
     notify_error("something went wrong")
 
 
 def test_notify_escapes_quotes(mocker):
-    mock_run = mocker.patch("forge.macos_bridge.subprocess.run")
+    mock_run = mocker.patch("sculptor.macos_bridge.subprocess.run")
     notify("Title", 'He said "hello"')
     script = mock_run.call_args[0][0][2]
     assert '\\"' in script
+
+
+def test_notify_success_uses_narrative_sculptor_branding(mocker):
+    mock_run = mocker.patch("sculptor.macos_bridge.subprocess.run")
+    notify_success()
+    script = mock_run.call_args[0][0][2]
+    assert "Narrative Sculptor" in script
+
+
+def test_notify_error_uses_narrative_sculptor_branding(mocker):
+    mock_run = mocker.patch("sculptor.macos_bridge.subprocess.run")
+    notify_error("something broke")
+    script = mock_run.call_args[0][0][2]
+    assert "Narrative Sculptor" in script

@@ -1,4 +1,4 @@
-from forge.llm_client import (
+from sculptor.llm_client import (
     generate,
     RetroResponse,
     VocabularyCorrection,

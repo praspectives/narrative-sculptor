@@ -1,7 +1,7 @@
 import sys
 import click
-from forge.engine import process
-from forge.macos_bridge import get_clipboard, set_clipboard, notify_success, notify_error
+from sculptor.engine import process
+from sculptor.macos_bridge import get_clipboard, set_clipboard, notify_success, notify_error
 
 
 @click.command()
@@ -17,7 +17,7 @@ from forge.macos_bridge import get_clipboard, set_clipboard, notify_success, not
 @click.option("--mock", "use_mock", is_flag=True, help="Return hardcoded response. Tests clipboard + notifications without any LLM call.")
 @click.option("--stdin", "use_stdin", is_flag=True, help="Read raw text from stdin instead of clipboard.")
 def main(model: str, dev_api: str | None, dev_model: str | None, use_mock: bool, use_stdin: bool) -> None:
-    """The Storyteller's Forge — transform raw dictated thoughts into polished narratives.
+    """Narrative Sculptor — analyze raw drafts and sculpt them into compelling narratives.
 
     Default: local Ollama. Dev mode: --dev-api anthropic|groq|openai (requires API key in .env).
     """

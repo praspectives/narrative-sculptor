@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "storytellers-forge"
-version = "0.2.0"
-description = "macOS utility to transform raw dictated thoughts into polished narratives using local LLMs"
+name = "narrative-sculptor"
+version = "0.3.0"
+description = "macOS utility that analyzes raw drafts and delivers a pedagogical Narrative Retro using local LLMs"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -22,10 +22,10 @@ dev-api = [
 ]
 
 [project.scripts]
-forge = "forge.cli:main"
+sculpt = "sculptor.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/forge"]
+packages = ["src/sculptor"]
 
 [dependency-groups]
 dev = [

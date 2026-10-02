@@ -23,12 +23,12 @@ def notify(title: str, message: str, subtitle: str = "") -> None:
 
 
 def notify_error(message: str) -> None:
-    notify("Storyteller's Forge", message, subtitle="Error — check terminal")
+    notify("Narrative Sculptor", message, subtitle="Error — check terminal")
 
 
 def notify_success() -> None:
     notify(
-        "Storyteller's Forge",
+        "Narrative Sculptor",
         "Retro Ready! Press Cmd+V to append it at the bottom of your note.",
         subtitle="Narrative Post-Mortem",
     )
