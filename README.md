@@ -60,22 +60,45 @@ uv run sculpt --mock
 
 Copy `.env.example` to `.env` and add your key:
 ```
-DEV_API=anthropic
-ANTHROPIC_API_KEY=sk-ant-...
+DEV_API=grok
+GROK_API_KEY=xai-...
 ```
 
-## Hotkey setup (macOS Automator)
+Supported providers: `grok`, `anthropic`, `groq`, `openai`.
 
-See the step-by-step instructions printed by `install_mac.sh` after installation.
+## Hotkey setup (one command)
+
+Run the automated setup script — it installs a macOS Quick Action directly into `~/Library/Services/`:
+
+```bash
+bash scripts/setup_mac_hotkey.sh
+```
+
+Then bind a shortcut (e.g. `Cmd+Shift+E`):
+1. System Settings → Keyboard → Keyboard Shortcuts → Services
+2. Scroll to **General** → find **Narrative Sculptor**
+3. Click **Add Shortcut** and press your chosen key combo
+
+From then on:
+1. Copy your raw draft (`Cmd+C`)
+2. Press the hotkey
+3. Wait for the **"Narrative Sculptor Ready"** notification
+4. Paste (`Cmd+V`) at the bottom of your document
+
+## Customising the system prompt
+
+The prompt lives in `src/sculptor/system_prompt.md` — edit it directly with no Python changes required. Restart the tool and the new prompt is live.
 
 ## Project structure
 
 ```
 src/sculptor/
-├── cli.py           # Entry point (click)
-├── engine.py        # System prompt + output formatter
-├── llm_client.py    # Ollama/cloud wrapper with Pydantic structured output
-└── macos_bridge.py  # clipboard (pbcopy/pbpaste) + macOS notifications
+├── cli.py             # Entry point (click)
+├── engine.py          # Reads system_prompt.md + output formatter
+├── system_prompt.md   # System prompt — edit freely to refine coaching rules
+├── llm_client.py      # Ollama/cloud wrapper with Pydantic structured output
+└── macos_bridge.py    # clipboard (pbcopy/pbpaste) + macOS notifications
 scripts/
-└── install_mac.sh   # One-shot installer
+├── install_mac.sh     # One-shot installer (Ollama + uv sync)
+└── setup_mac_hotkey.sh  # Installs Automator Quick Action + hotkey instructions
 ```

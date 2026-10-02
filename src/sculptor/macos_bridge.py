@@ -23,7 +23,7 @@ def notify(title: str, message: str, subtitle: str = "") -> None:
 
 
 def notify_error(message: str) -> None:
-    notify("Narrative Sculptor", message, subtitle="Error — check terminal")
+    notify("Narrative Sculptor Error", message, subtitle="Check terminal for details")
 
 
 def notify_success() -> None:

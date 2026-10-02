@@ -1,7 +1,16 @@
+import subprocess
 import sys
 import click
 from sculptor.engine import process
 from sculptor.macos_bridge import get_clipboard, set_clipboard, notify_success, notify_error
+
+
+def _emergency_notify(message: str) -> None:
+    safe = message.replace('"', '\\"')[:120]
+    subprocess.run(
+        ["osascript", "-e", f'display notification "{safe}" with title "Narrative Sculptor Error"'],
+        capture_output=True,
+    )
 
 
 @click.command()
@@ -34,6 +43,9 @@ def main(model: str, dev_api: str | None, dev_model: str | None, use_mock: bool,
 
     except Exception as e:
         msg = str(e)[:120]
-        notify_error(msg)
+        try:
+            notify_error(msg)
+        except Exception:
+            _emergency_notify(msg)
         click.echo(f"Error: {e}", err=True)
         sys.exit(1)
