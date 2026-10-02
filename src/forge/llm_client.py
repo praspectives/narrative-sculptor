@@ -1,38 +1,26 @@
 import os
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 import ollama
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
-class VocabEntry(BaseModel):
+class VocabularyCorrection(BaseModel):
     vague_word: str
-    suggestions: list[str] = Field(..., min_length=3, max_length=3)
+    alternatives: list[str]
 
 
-class VocabularyBank(BaseModel):
-    entries: list[VocabEntry] = Field(..., min_length=1)
-
-
-class StyleLens(BaseModel):
-    label: str   # e.g. "Hook (Thiel)", "Macro (Harari)", "Pacing (Lee Child)"
-    original: str
+class NarrativeLens(BaseModel):
+    archetype: str
+    issue: str
     sculpted: str
 
 
-class StyleLenses(BaseModel):
-    rewrites: list[StyleLens] = Field(..., min_length=2, max_length=2)
-
-
-class Interrogation(BaseModel):
-    questions: list[str] = Field(..., min_length=2, max_length=2)
-
-
 class RetroResponse(BaseModel):
-    vocabulary_bank: VocabularyBank
-    style_lenses: StyleLenses
-    interrogation: Interrogation
+    vocabulary_bank: list[VocabularyCorrection]
+    narrative_lenses: list[NarrativeLens]
+    structural_interrogation: list[str]
 
 
 def _generate_ollama(raw_text: str, model: str, system_prompt: str) -> RetroResponse:
@@ -63,11 +51,10 @@ def _generate_anthropic(raw_text: str, system_prompt: str, model: str) -> RetroR
         f"{system_prompt}\n\nYou MUST respond with valid JSON matching this schema exactly:\n"
         f"{schema}\n\nRespond with JSON only. No markdown, no explanation."
     )
-
     client = anthropic.Anthropic(api_key=api_key)
     response = client.messages.create(
         model=model or "claude-haiku-4-5-20251001",
-        max_tokens=2048,
+        max_tokens=4096,
         system=full_prompt,
         messages=[{"role": "user", "content": raw_text}],
     )
