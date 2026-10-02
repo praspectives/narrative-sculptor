@@ -1,4 +1,4 @@
-from forge.llm_client import generate, ForgeResponse
+from forge.llm_client import generate, ForgeResponse, XRayBulletPoints
 
 SYSTEM_PROMPT = """You are a master narrative editor and writing tutor. Your job is to take raw, dictated thoughts and transform them into a concise, captivating story.
 
@@ -13,12 +13,35 @@ SYSTEM_PROMPT = """You are a master narrative editor and writing tutor. Your job
 
 Respond with valid JSON matching the required schema. No markdown, no explanation outside the JSON."""
 
+MOCK_RESPONSE = ForgeResponse(
+    story="[MOCK] Most teams ship the wrong thing perfectly. This is a placeholder polished narrative confirming the clipboard pipeline, notification bridge, and formatter are all wired correctly.",
+    xray=XRayBulletPoints(bullets=[
+        "Hook: Contrarian opener placed first to test the story formatter.",
+        "Pacing: Single declarative sentence verifies the clipboard write path.",
+        "Voice: Placeholder preserves casual register to confirm notification delivery.",
+    ]),
+)
+
 
 def format_output(response: ForgeResponse) -> str:
     bullets = "\n".join(f"- {b}" for b in response.xray.bullets)
     return f"[THE STORY]\n{response.story}\n\n---\n[THE X-RAY]\n{bullets}"
 
 
-def process(raw_text: str, model: str = "llama3.2:1b") -> str:
-    response = generate(raw_text, model=model, system_prompt=SYSTEM_PROMPT)
+def process(
+    raw_text: str,
+    model: str = "llama3.2:1b",
+    mock: bool = False,
+    dev_api: str | None = None,
+    dev_model: str | None = None,
+) -> str:
+    if mock:
+        return format_output(MOCK_RESPONSE)
+    response = generate(
+        raw_text,
+        model=model,
+        system_prompt=SYSTEM_PROMPT,
+        dev_api=dev_api,
+        dev_model=dev_model,
+    )
     return format_output(response)
