@@ -1,5 +1,4 @@
 import subprocess
-import sys
 
 
 def get_clipboard() -> str:
@@ -28,4 +27,8 @@ def notify_error(message: str) -> None:
 
 
 def notify_success() -> None:
-    notify("Storyteller's Forge", "Your story is ready. Paste to replace.", subtitle="Done")
+    notify(
+        "Storyteller's Forge",
+        "Retro Ready! Press Cmd+V to append it at the bottom of your note.",
+        subtitle="Narrative Post-Mortem",
+    )

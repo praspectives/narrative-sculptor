@@ -6,16 +6,36 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-class XRayBulletPoints(BaseModel):
-    bullets: list[str] = Field(..., min_length=3, max_length=4)
+class VocabEntry(BaseModel):
+    vague_word: str
+    suggestions: list[str] = Field(..., min_length=3, max_length=3)
 
 
-class ForgeResponse(BaseModel):
-    story: str
-    xray: XRayBulletPoints
+class VocabularyBank(BaseModel):
+    entries: list[VocabEntry] = Field(..., min_length=1)
 
 
-def _generate_ollama(raw_text: str, model: str, system_prompt: str) -> ForgeResponse:
+class StyleLens(BaseModel):
+    label: str   # e.g. "Hook (Thiel)", "Macro (Harari)", "Pacing (Lee Child)"
+    original: str
+    sculpted: str
+
+
+class StyleLenses(BaseModel):
+    rewrites: list[StyleLens] = Field(..., min_length=2, max_length=2)
+
+
+class Interrogation(BaseModel):
+    questions: list[str] = Field(..., min_length=2, max_length=2)
+
+
+class RetroResponse(BaseModel):
+    vocabulary_bank: VocabularyBank
+    style_lenses: StyleLenses
+    interrogation: Interrogation
+
+
+def _generate_ollama(raw_text: str, model: str, system_prompt: str) -> RetroResponse:
     client = ollama.Client()
     response = client.chat(
         model=model,
@@ -23,12 +43,12 @@ def _generate_ollama(raw_text: str, model: str, system_prompt: str) -> ForgeResp
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": raw_text},
         ],
-        format=ForgeResponse.model_json_schema(),
+        format=RetroResponse.model_json_schema(),
     )
-    return ForgeResponse.model_validate_json(response.message.content)
+    return RetroResponse.model_validate_json(response.message.content)
 
 
-def _generate_anthropic(raw_text: str, system_prompt: str, model: str) -> ForgeResponse:
+def _generate_anthropic(raw_text: str, system_prompt: str, model: str) -> RetroResponse:
     try:
         import anthropic
     except ImportError:
@@ -38,7 +58,7 @@ def _generate_anthropic(raw_text: str, system_prompt: str, model: str) -> ForgeR
     if not api_key:
         raise RuntimeError("ANTHROPIC_API_KEY not set in environment or .env file")
 
-    schema = ForgeResponse.model_json_schema()
+    schema = RetroResponse.model_json_schema()
     full_prompt = (
         f"{system_prompt}\n\nYou MUST respond with valid JSON matching this schema exactly:\n"
         f"{schema}\n\nRespond with JSON only. No markdown, no explanation."
@@ -51,10 +71,10 @@ def _generate_anthropic(raw_text: str, system_prompt: str, model: str) -> ForgeR
         system=full_prompt,
         messages=[{"role": "user", "content": raw_text}],
     )
-    return ForgeResponse.model_validate_json(response.content[0].text)
+    return RetroResponse.model_validate_json(response.content[0].text)
 
 
-def _generate_groq(raw_text: str, system_prompt: str, model: str) -> ForgeResponse:
+def _generate_groq(raw_text: str, system_prompt: str, model: str) -> RetroResponse:
     try:
         from openai import OpenAI
     except ImportError:
@@ -64,7 +84,7 @@ def _generate_groq(raw_text: str, system_prompt: str, model: str) -> ForgeRespon
     if not api_key:
         raise RuntimeError("GROQ_API_KEY not set in environment or .env file")
 
-    schema = ForgeResponse.model_json_schema()
+    schema = RetroResponse.model_json_schema()
     client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
     response = client.chat.completions.create(
         model=model or "llama-3.1-8b-instant",
@@ -74,10 +94,10 @@ def _generate_groq(raw_text: str, system_prompt: str, model: str) -> ForgeRespon
         ],
         response_format={"type": "json_object"},
     )
-    return ForgeResponse.model_validate_json(response.choices[0].message.content)
+    return RetroResponse.model_validate_json(response.choices[0].message.content)
 
 
-def _generate_openai(raw_text: str, system_prompt: str, model: str) -> ForgeResponse:
+def _generate_openai(raw_text: str, system_prompt: str, model: str) -> RetroResponse:
     try:
         from openai import OpenAI
     except ImportError:
@@ -87,7 +107,7 @@ def _generate_openai(raw_text: str, system_prompt: str, model: str) -> ForgeResp
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY not set in environment or .env file")
 
-    schema = ForgeResponse.model_json_schema()
+    schema = RetroResponse.model_json_schema()
     client = OpenAI(api_key=api_key)
     response = client.chat.completions.create(
         model=model or "gpt-4o-mini",
@@ -97,7 +117,7 @@ def _generate_openai(raw_text: str, system_prompt: str, model: str) -> ForgeResp
         ],
         response_format={"type": "json_object"},
     )
-    return ForgeResponse.model_validate_json(response.choices[0].message.content)
+    return RetroResponse.model_validate_json(response.choices[0].message.content)
 
 
 def generate(
@@ -106,7 +126,7 @@ def generate(
     system_prompt: str,
     dev_api: str | None = None,
     dev_model: str | None = None,
-) -> ForgeResponse:
+) -> RetroResponse:
     provider = dev_api or os.getenv("DEV_API")
     if provider == "anthropic":
         return _generate_anthropic(raw_text, system_prompt, dev_model or "")
